@@ -4,14 +4,11 @@ const PomodoroHistory = () => {
       <p className="text-md text-muted-foreground">오늘 담은 토마토</p>
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-5 gap-2">
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
-          <p>🍅</p>
+          {Array.from({ length: 12 }).map((_, index) => (
+            <p key={index} className="text-xl hover-bounce">
+              🍅
+            </p>
+          ))}
         </div>
       </div>
     </div>
