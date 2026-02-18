@@ -1,3 +1,8 @@
+import {
+  DEFAULT_BREAK_TIME,
+  DEFAULT_FOCUS_TIME,
+  DEFAULT_LONG_BREAK_TIME,
+} from "@/lib/constants";
 import { create } from "zustand";
 import { combine, devtools, persist } from "zustand/middleware";
 
@@ -10,9 +15,9 @@ type PomodoroSettingsState = {
 
 const initialState: PomodoroSettingsState = {
   selectedTag: "집중",
-  focusTime: 25,
-  breakTime: 5,
-  longBreakTime: 15,
+  focusTime: DEFAULT_FOCUS_TIME,
+  breakTime: DEFAULT_BREAK_TIME,
+  longBreakTime: DEFAULT_LONG_BREAK_TIME,
 };
 
 const usePomodoroSettings = create(
@@ -44,3 +49,7 @@ export const useSelectedTag = () =>
 
 export const useSetSelectedTag = () =>
   usePomodoroSettings((state) => state.actions.setSelectedTag);
+
+export const usePomodoroSettingsStore = () => {
+  return usePomodoroSettings();
+};

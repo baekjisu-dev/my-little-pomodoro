@@ -5,3 +5,7 @@ export const FOCUS_LEVELS = [
   "bg-primary/80",
   "bg-primary/100",
 ];
+
+export const DEFAULT_FOCUS_TIME = 25;
+export const DEFAULT_BREAK_TIME = 5;
+export const DEFAULT_LONG_BREAK_TIME = 15;
