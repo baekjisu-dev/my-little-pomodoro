@@ -1,11 +1,14 @@
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { useOpenTagAddModal } from "@/stores/tag-add-modal";
 
 const PomodoroTimer = () => {
+  const openTagAddModal = useOpenTagAddModal();
+
   return (
     <div className="w-full flex flex-col items-center gap-8">
-      <Badge>태그를 선택해요.</Badge>
+      <Badge onClick={openTagAddModal}>태그를 선택해요.</Badge>
       <p className="text-8xl font-bold">25:00</p>
       <div className="flex gap-2">
         <Button size="lg">
