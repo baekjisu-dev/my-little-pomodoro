@@ -7,7 +7,11 @@ import {
   usePomodoroSettingsStore,
   useSelectedTag,
 } from "@/stores/pomodoro-settings";
-import { formatTime } from "@/lib/utils";
+import {
+  formatTime,
+  requestNotificationPermission,
+  showNotification,
+} from "@/lib/utils";
 import { usePomodoroStateStore } from "@/stores/pomodoro-status";
 
 const PomodoroTimer = () => {
@@ -77,9 +81,19 @@ const PomodoroTimer = () => {
       }
 
       setFocusCount(currentFocusCount);
+
+      showNotification(
+        "집중 시간 종료",
+        "집중 시간이 종료되었어요. 휴식 시간을 시작해요.",
+      );
     } else if (currentPhase === "break" || currentPhase === "longBreak") {
       setCurrentPhase("focus");
       setRemainingSeconds(focusTime * 60);
+
+      showNotification(
+        "휴식 시간 종료",
+        "휴식 시간이 종료되었어요. 집중 시간을 시작해요.",
+      );
     }
   };
 
@@ -94,6 +108,7 @@ const PomodoroTimer = () => {
   };
 
   useEffect(() => {
+    requestNotificationPermission();
     initSeconds();
 
     return () => {
