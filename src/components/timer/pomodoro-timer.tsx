@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -15,19 +15,27 @@ const PomodoroTimer = () => {
   const selectedTag = useSelectedTag();
   const {
     isRunning,
+    focusCount,
     currentPhase,
-    actions: { setIsRunning, setCurrentPhase },
+    actions: { setIsRunning, setCurrentPhase, setFocusCount },
   } = usePomodoroStateStore();
-  const { focusTime, breakTime } = usePomodoroSettingsStore();
+  const { focusTime, breakTime, longBreakTime } = usePomodoroSettingsStore();
 
   const [remainingSeconds, setRemainingSeconds] = useState(focusTime * 60);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initSeconds = () => {
-    const initSeconds =
-      currentPhase === "focus" ? focusTime * 60 : breakTime * 60;
-
-    setRemainingSeconds(initSeconds);
+    switch (currentPhase) {
+      case "focus":
+        setRemainingSeconds(focusTime * 60);
+        break;
+      case "break":
+        setRemainingSeconds(breakTime * 60);
+        break;
+      case "longBreak":
+        setRemainingSeconds(longBreakTime * 60);
+        break;
+    }
   };
 
   const initializeTimer = () => {
@@ -58,11 +66,20 @@ const PomodoroTimer = () => {
 
   const changePhase = () => {
     if (currentPhase === "focus") {
-      setCurrentPhase("break");
-      setRemainingSeconds(0.5 * 60);
-    } else if (currentPhase === "break") {
+      const currentFocusCount = focusCount + 1;
+
+      if (currentFocusCount % 4 === 0) {
+        setCurrentPhase("longBreak");
+        setRemainingSeconds(longBreakTime * 60);
+      } else {
+        setCurrentPhase("break");
+        setRemainingSeconds(breakTime * 60);
+      }
+
+      setFocusCount(currentFocusCount);
+    } else if (currentPhase === "break" || currentPhase === "longBreak") {
       setCurrentPhase("focus");
-      setRemainingSeconds(0.5 * 60);
+      setRemainingSeconds(focusTime * 60);
     }
   };
 

@@ -17,8 +17,12 @@ import {
   DEFAULT_LONG_BREAK_TIME,
 } from "@/lib/constants";
 import { toast } from "sonner";
+import { useResetPomodoroStatus } from "@/stores/pomodoro-status";
+import { useOpenAlertModal } from "@/stores/alert-modal";
 
 const TimeSetting = () => {
+  const openAlertModal = useOpenAlertModal();
+  const resetPomodoroStatus = useResetPomodoroStatus();
   const {
     focusTime,
     breakTime,
@@ -53,6 +57,23 @@ const TimeSetting = () => {
       currentLongBreakTime === DEFAULT_LONG_BREAK_TIME
     );
   }, [currentFocusTime, currentBreakTime, currentLongBreakTime]);
+
+  const handleOpenAlertModal = (type: "save" | "reset") => {
+    openAlertModal({
+      title: "설정 변경",
+      description:
+        "설정을 변경하면 지금 진행 중인 포모도로가 초기화 돼요. 계속 진행하시겠어요?",
+      onPositive: () => {
+        if (type === "save") {
+          handleSaveTime();
+        } else {
+          handleResetTime();
+        }
+
+        resetPomodoroStatus();
+      },
+    });
+  };
 
   const handleSaveTime = () => {
     setFocusTime(currentFocusTime);
@@ -112,7 +133,7 @@ const TimeSetting = () => {
         <div className="flex justify-end gap-2 w-full">
           <Button
             className="w-1/2 sm:w-1/4"
-            onClick={handleSaveTime}
+            onClick={() => handleOpenAlertModal("save")}
             disabled={!checkSaveAvailable}
           >
             저장
@@ -120,7 +141,7 @@ const TimeSetting = () => {
           <Button
             variant="outline"
             className="w-1/2 sm:w-1/4"
-            onClick={handleResetTime}
+            onClick={() => handleOpenAlertModal("reset")}
             disabled={checkResetAvailable}
           >
             초기화
