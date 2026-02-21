@@ -4,8 +4,10 @@ import { ButtonGroup } from "../ui/button-group";
 import { Button } from "../ui/button";
 import { useMemo } from "react";
 import { NAV_TABS } from "@/lib/navigation";
+import { useIsRunning } from "@/stores/pomodoro-status";
 
 const GlobalLayout = () => {
+  const isRunning = useIsRunning();
   const navigate = useNavigate();
   const pathname = useLocation();
 
@@ -14,6 +16,8 @@ const GlobalLayout = () => {
   }, [pathname]);
 
   const handleTabClick = (path: string) => {
+    if (path === activeTabPath) return;
+
     navigate(path);
   };
 
@@ -27,6 +31,7 @@ const GlobalLayout = () => {
               key={tab.path}
               className="w-16"
               variant={activeTabPath === tab.path ? "default" : "outline"}
+              disabled={isRunning && activeTabPath !== tab.path}
               onClick={() => handleTabClick(tab.path)}
             >
               {tab.label}
