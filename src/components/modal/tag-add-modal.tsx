@@ -54,13 +54,13 @@ const TagAddModal = () => {
       <DialogContent>
         <DialogTitle>태그 선택하기</DialogTitle>
         <DialogDescription>집중할 태그를 선택해 주세요.</DialogDescription>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           <Button size="icon-xs" onClick={handleAddTagClick}>
             <PlusIcon />
           </Button>
           {isAdd && (
             <Input
-              className="w-20 h-6 text-xs"
+              className="w-20 h-[30px] text-xs"
               placeholder="새로운 태그"
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}

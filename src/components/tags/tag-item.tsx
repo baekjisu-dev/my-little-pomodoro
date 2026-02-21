@@ -3,6 +3,7 @@ import { Badge } from "../ui/badge";
 import { useTagStore } from "@/stores/tag";
 import { useOpenAlertModal } from "@/stores/alert-modal";
 import { Button } from "../ui/button";
+import { usePomodoroSettingsStore } from "@/stores/pomodoro-settings";
 
 interface TagItemProps {
   tag: string;
@@ -12,6 +13,11 @@ interface TagItemProps {
 
 const TagItem = ({ tag, isEditable = false, onClick }: TagItemProps) => {
   const {
+    selectedTag,
+    actions: { setSelectedTag },
+  } = usePomodoroSettingsStore();
+  const {
+    tags,
     actions: { removeTag },
   } = useTagStore();
   const openAlertModal = useOpenAlertModal();
@@ -22,6 +28,11 @@ const TagItem = ({ tag, isEditable = false, onClick }: TagItemProps) => {
       description: `${tag} 태그를 삭제하시겠어요?`,
       onPositive: () => {
         removeTag(tag);
+
+        // * 만일 삭제된 태그가 선택된 태그라면, 맨 첫 번째 태그를 대신 선택
+        if (tag === selectedTag) {
+          setSelectedTag(tags[0]);
+        }
       },
     });
   };
@@ -29,7 +40,7 @@ const TagItem = ({ tag, isEditable = false, onClick }: TagItemProps) => {
   return (
     <Badge
       variant="secondary"
-      className="grow-0"
+      className="grow-0 h-[30px]"
       onClick={() => onClick?.(tag)}
     >
       {tag}
