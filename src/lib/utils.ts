@@ -23,5 +23,13 @@ export const showNotification = (title: string, body: string) => {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
 
-  new Notification(title, { body, icon: "/favicon.png" });
+  const notification = new Notification(title, {
+    body,
+    icon: "/favicon.png",
+  });
+
+  notification.onclick = () => {
+    window.focus();
+    notification.close();
+  };
 };
