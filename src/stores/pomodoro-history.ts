@@ -74,7 +74,7 @@ const usePomodoroHistory = create(
             lastDate.getMonth() === now.getMonth() &&
             lastDate.getDate() === now.getDate();
 
-          if (isSameDay) {
+          if (!isSameDay) {
             actions.addPomodoroToHistory30Days(todayPomodoros);
             actions.resetTodayPomodoros();
           }
