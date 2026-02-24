@@ -1,13 +1,15 @@
 import { create } from "zustand";
-import { combine, devtools } from "zustand/middleware";
+import { combine, devtools, persist } from "zustand/middleware";
 
 type PomodoroStatusState = {
+  currentSeconds: number;
   isRunning: boolean;
   focusCount: number;
   currentPhase: "focus" | "break" | "longBreak";
 };
 
 const initialState: PomodoroStatusState = {
+  currentSeconds: 0,
   isRunning: false,
   focusCount: 0,
   currentPhase: "focus",
@@ -15,15 +17,27 @@ const initialState: PomodoroStatusState = {
 
 const usePomodoroStatus = create(
   devtools(
-    combine(initialState, (set) => ({
-      actions: {
-        setIsRunning: (isRunning: boolean) => set({ isRunning: isRunning }),
-        setFocusCount: (count: number) => set({ focusCount: count }),
-        setCurrentPhase: (phase: "focus" | "break" | "longBreak") =>
-          set({ currentPhase: phase }),
-        reset: () => set(initialState),
+    persist(
+      combine(initialState, (set) => ({
+        actions: {
+          setCurrentSeconds: (seconds: number) =>
+            set({ currentSeconds: seconds }),
+          setIsRunning: (isRunning: boolean) => set({ isRunning: isRunning }),
+          setFocusCount: (count: number) => set({ focusCount: count }),
+          setCurrentPhase: (phase: "focus" | "break" | "longBreak") =>
+            set({ currentPhase: phase }),
+          reset: () => set({ ...initialState }),
+        },
+      })),
+      {
+        name: "pomodoro-status",
+        partialize: (state) => ({
+          currentSeconds: state.currentSeconds,
+          focusCount: state.focusCount,
+          currentPhase: state.currentPhase,
+        }),
       },
-    })),
+    ),
     { name: "pomodoro-status" },
   ),
 );

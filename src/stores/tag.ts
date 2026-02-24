@@ -20,10 +20,12 @@ const useTag = create(
             set((state) => ({ tags: state.tags.filter((t) => t !== tag) })),
         },
       })),
-      { name: "tag", partialize: (state) => ({ tags: state.tags }) }
+      { name: "tag", partialize: (state) => ({ tags: state.tags }) },
     ),
-    { name: "tag" }
-  )
+    { name: "tag" },
+  ),
 );
 
 export const useTagStore = () => useTag();
+
+export const useTags = () => useTag((state) => state.tags);

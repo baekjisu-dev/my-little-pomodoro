@@ -13,15 +13,23 @@ import {
   showNotification,
 } from "@/lib/utils";
 import { usePomodoroStateStore } from "@/stores/pomodoro-status";
+import { useAddPomodoro } from "@/stores/pomodoro-history";
 
 const PomodoroTimer = () => {
   const openTagAddModal = useOpenTagAddModal();
+  const addPomodoro = useAddPomodoro();
   const selectedTag = useSelectedTag();
   const {
+    currentSeconds,
     isRunning,
     focusCount,
     currentPhase,
-    actions: { setIsRunning, setCurrentPhase, setFocusCount },
+    actions: {
+      setCurrentSeconds,
+      setIsRunning,
+      setCurrentPhase,
+      setFocusCount,
+    },
   } = usePomodoroStateStore();
   const { focusTime, breakTime, longBreakTime } = usePomodoroSettingsStore();
 
@@ -29,15 +37,20 @@ const PomodoroTimer = () => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initSeconds = () => {
+    if (currentSeconds > 0) {
+      setRemainingSeconds(currentSeconds);
+      return;
+    }
+
     switch (currentPhase) {
       case "focus":
-        setRemainingSeconds(focusTime * 60);
+        setRemainingSeconds(0.1 * 60);
         break;
       case "break":
-        setRemainingSeconds(breakTime * 60);
+        setRemainingSeconds(0.1 * 60);
         break;
       case "longBreak":
-        setRemainingSeconds(longBreakTime * 60);
+        setRemainingSeconds(0.1 * 60);
         break;
     }
   };
@@ -53,9 +66,12 @@ const PomodoroTimer = () => {
           }
 
           changePhase();
+          setCurrentSeconds(0);
 
           return 0;
         }
+
+        setCurrentSeconds(prev - 1);
         return prev - 1;
       });
     }, 1000);
@@ -72,12 +88,19 @@ const PomodoroTimer = () => {
     if (currentPhase === "focus") {
       const currentFocusCount = focusCount + 1;
 
+      console.log(currentFocusCount);
+
       if (currentFocusCount % 4 === 0) {
+        addPomodoro({
+          uuid: crypto.randomUUID(),
+          tag: selectedTag,
+          createdAt: Date.now(),
+        });
         setCurrentPhase("longBreak");
-        setRemainingSeconds(longBreakTime * 60);
+        setRemainingSeconds(0.1 * 60);
       } else {
         setCurrentPhase("break");
-        setRemainingSeconds(breakTime * 60);
+        setRemainingSeconds(0.1 * 60);
       }
 
       setFocusCount(currentFocusCount);
@@ -88,7 +111,7 @@ const PomodoroTimer = () => {
       );
     } else if (currentPhase === "break" || currentPhase === "longBreak") {
       setCurrentPhase("focus");
-      setRemainingSeconds(focusTime * 60);
+      setRemainingSeconds(0.1 * 60);
 
       showNotification(
         "휴식 시간 종료",
@@ -129,7 +152,7 @@ const PomodoroTimer = () => {
           <ChevronRightIcon className="size-4" />
         </Badge>
       ) : (
-        <p>휴식 시간 </p>
+        <p>{currentPhase === "longBreak" && "긴"} 휴식 시간 </p>
       )}
       <p className="text-8xl font-bold tabular-nums">
         {formatTime(remainingSeconds)}

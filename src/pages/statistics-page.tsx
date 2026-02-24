@@ -1,4 +1,11 @@
-import { Combobox, ComboboxInput } from "@/components/ui/combobox";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import {
   Tooltip,
   TooltipContent,
@@ -6,14 +13,57 @@ import {
 } from "@/components/ui/tooltip";
 import { FOCUS_LEVELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { usePomodoroHistory30Days } from "@/stores/pomodoro-history";
+import { useTags } from "@/stores/tag";
+import { useMemo, useState } from "react";
+import type { TagOption } from "types";
 
 const StatisticsPage = () => {
+  const pomodoroHistory30Days = usePomodoroHistory30Days();
+  const tags = useTags();
+
+  const [selectedTag, setSelectedTag] = useState<TagOption>({
+    label: "전체",
+    value: "all",
+  });
+
+  const tagOptions = useMemo((): TagOption[] => {
+    return [
+      { label: "전체", value: "all" },
+      ...tags.map((tag) => ({ label: tag, value: tag })),
+    ];
+  }, [tags]);
+
+  const handleSelectTag = (value: TagOption | null) => {
+    if (value) setSelectedTag(value);
+  };
+
   return (
     <div className="w-full p-4">
       <div className="w-full flex justify-between items-center">
-        <p className="text-lg text-bold">최근 30일 집중도</p>
-        <Combobox>
+        <p className="text-lg text-bold">
+          최근 30일 집중도{" "}
+          <span className="text-xs text-muted-foreground">
+            매일 12시에 업데이트돼요
+          </span>
+        </p>
+        <Combobox
+          items={tagOptions}
+          itemToStringValue={(tag: TagOption) => tag.label}
+          onValueChange={handleSelectTag}
+          value={selectedTag}
+        >
           <ComboboxInput placeholder="태그 선택" />
+          <ComboboxContent>
+            <ComboboxEmpty>태그가 없어요</ComboboxEmpty>
+            <ComboboxList>
+              {(tag) => (
+                <ComboboxItem key={tag.value} value={tag}>
+                  {tag.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
         </Combobox>
       </div>
       <div className="w-full grid grid-cols-6 sm:grid-cols-10 gap-2 mt-4">
@@ -22,7 +72,10 @@ const StatisticsPage = () => {
             <TooltipTrigger>
               <div className="aspect-square bg-primary/50 rounded-sm hover-bounce" />
             </TooltipTrigger>
-            <TooltipContent>1개의 토마토</TooltipContent>
+            <TooltipContent>
+              {pomodoroHistory30Days[index]?.[selectedTag.value] || 0}개의
+              토마토
+            </TooltipContent>
           </Tooltip>
         ))}
       </div>
