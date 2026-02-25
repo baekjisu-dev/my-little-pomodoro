@@ -1,55 +1,73 @@
 import { create } from "zustand";
-import { combine, devtools, persist } from "zustand/middleware";
-import type { Pomodoro } from "../../types";
+import { devtools, persist } from "zustand/middleware";
+import type { Pomodoro, TagCounts } from "../../types";
+import { isSameDay } from "date-fns";
+import {
+  computeTagCounts,
+  get30DayView,
+  pruneOldHistory,
+  toDateString,
+} from "@/lib/history";
 
 type PomodoroHistoryState = {
   todayPomodoros: Pomodoro[];
-  pomodoroHistory30Days: { [key: string]: number; all: number }[];
+  pomodoroHistory30Days: Record<string, TagCounts>;
 };
+
+type PomodoroHistoryActions = {
+  actions: {
+    addPomodoro: (pomodoro: Pomodoro) => void;
+    flushTodayToHistory: () => void;
+    reset: () => void;
+  };
+};
+
+type PomodoroHistoryStore = PomodoroHistoryState & PomodoroHistoryActions;
 
 const initialState: PomodoroHistoryState = {
   todayPomodoros: [],
-  pomodoroHistory30Days: [],
+  pomodoroHistory30Days: {},
 };
 
-const usePomodoroHistory = create(
+const usePomodoroHistory = create<PomodoroHistoryStore>()(
   devtools(
     persist(
-      combine(initialState, (set, get) => ({
+      (set, get) => ({
+        ...initialState,
         actions: {
           addPomodoro: (pomodoro: Pomodoro) => {
-            set({ todayPomodoros: [...get().todayPomodoros, pomodoro] });
-          },
-          addPomodoroToHistory30Days: (pomodoros: Pomodoro[]) => {
-            const tagCounts: { [key: string]: number; all: number } = {
-              all: 0,
-            };
+            const { todayPomodoros, actions } = get();
+            const lastPomodoro = todayPomodoros[todayPomodoros.length - 1];
 
-            for (const pomodoro of pomodoros) {
-              tagCounts.all++;
-              if (pomodoro.tag) {
-                if (tagCounts[pomodoro.tag]) {
-                  tagCounts[pomodoro.tag]++;
-                } else {
-                  tagCounts[pomodoro.tag] = 1;
-                }
-              }
+            if (
+              lastPomodoro &&
+              !isSameDay(new Date(lastPomodoro.createdAt), new Date())
+            ) {
+              actions.flushTodayToHistory();
             }
 
-            const currentHistory = [...get().pomodoroHistory30Days];
-
-            if (currentHistory.length >= 30) currentHistory.shift();
-
-            currentHistory.push(tagCounts);
-
-            console.log(currentHistory);
-
-            set({ pomodoroHistory30Days: currentHistory });
+            set((state) => ({
+              todayPomodoros: [...state.todayPomodoros, pomodoro],
+            }));
           },
-          resetTodayPomodoros: () => set({ todayPomodoros: [] }),
+          flushTodayToHistory: () => {
+            const { todayPomodoros, pomodoroHistory30Days } = get();
+            if (todayPomodoros.length === 0) return;
+
+            const lastPomodoro = todayPomodoros[todayPomodoros.length - 1];
+            const dateStr = toDateString(new Date(lastPomodoro.createdAt));
+            const tagCounts = computeTagCounts(todayPomodoros);
+
+            const updatedHistory = pruneOldHistory({
+              ...pomodoroHistory30Days,
+              [dateStr]: tagCounts,
+            });
+
+            set({ todayPomodoros: [], pomodoroHistory30Days: updatedHistory });
+          },
           reset: () => set({ ...initialState }),
         },
-      })),
+      }),
       {
         name: "pomodoro-history",
         partialize: (state) => ({
@@ -57,26 +75,15 @@ const usePomodoroHistory = create(
           pomodoroHistory30Days: state.pomodoroHistory30Days,
         }),
         onRehydrateStorage: () => (state) => {
-          // TODO: 사용 중에 12시가 넘어갔을 때도 동일 로직 추가
           if (!state) return;
 
           const { todayPomodoros, actions } = state;
-
           const lastPomodoro = todayPomodoros[todayPomodoros.length - 1];
 
           if (!lastPomodoro) return;
 
-          const lastDate = new Date(lastPomodoro.createdAt);
-          const now = new Date();
-
-          const isSameDay =
-            lastDate.getFullYear() === now.getFullYear() &&
-            lastDate.getMonth() === now.getMonth() &&
-            lastDate.getDate() === now.getDate();
-
-          if (!isSameDay) {
-            actions.addPomodoroToHistory30Days(todayPomodoros);
-            actions.resetTodayPomodoros();
+          if (!isSameDay(new Date(lastPomodoro.createdAt), new Date())) {
+            actions.flushTodayToHistory();
           }
         },
       },
@@ -86,27 +93,21 @@ const usePomodoroHistory = create(
 );
 
 export const useAddPomodoro = () => {
-  const addPomodoro = usePomodoroHistory((state) => state.actions.addPomodoro);
-
-  return addPomodoro;
+  return usePomodoroHistory((state) => state.actions.addPomodoro);
 };
 
 export const useTodayPomodoros = () => {
-  const todayPomodoros = usePomodoroHistory((state) => state.todayPomodoros);
-
-  return todayPomodoros;
+  return usePomodoroHistory((state) => state.todayPomodoros);
 };
 
 export const usePomodoroHistory30Days = () => {
-  const pomodoroHistory30Days = usePomodoroHistory(
+  const pomodoroHistory = usePomodoroHistory(
     (state) => state.pomodoroHistory30Days,
   );
 
-  return pomodoroHistory30Days;
+  return get30DayView(pomodoroHistory);
 };
 
 export const usePomodoroHistoryStore = () => {
-  const store = usePomodoroHistory();
-
-  return store as typeof store & PomodoroHistoryState;
+  return usePomodoroHistory();
 };

@@ -4,13 +4,22 @@ import {
   DEFAULT_LONG_BREAK_TIME,
 } from "@/lib/constants";
 import { create } from "zustand";
-import { combine, devtools, persist } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 
 type PomodoroSettingsState = {
   selectedTag: string;
   focusTime: number;
   breakTime: number;
   longBreakTime: number;
+};
+
+type PomodoroSettingsStore = PomodoroSettingsState & {
+  actions: {
+    setSelectedTag: (tag: string) => void;
+    setFocusTime: (time: number) => void;
+    setBreakTime: (time: number) => void;
+    setLongBreakTime: (time: number) => void;
+  };
 };
 
 const initialState: PomodoroSettingsState = {
@@ -20,17 +29,18 @@ const initialState: PomodoroSettingsState = {
   longBreakTime: DEFAULT_LONG_BREAK_TIME,
 };
 
-const usePomodoroSettings = create(
+const usePomodoroSettings = create<PomodoroSettingsStore>()(
   devtools(
     persist(
-      combine(initialState, (set) => ({
+      (set) => ({
+        ...initialState,
         actions: {
           setSelectedTag: (tag: string) => set({ selectedTag: tag }),
           setFocusTime: (time: number) => set({ focusTime: time }),
           setBreakTime: (time: number) => set({ breakTime: time }),
           setLongBreakTime: (time: number) => set({ longBreakTime: time }),
         },
-      })),
+      }),
       {
         name: "pomodoro-settings",
         partialize: (state) => ({
@@ -39,9 +49,9 @@ const usePomodoroSettings = create(
           breakTime: state.breakTime,
           longBreakTime: state.longBreakTime,
         }),
-      }
-    )
-  )
+      },
+    ),
+  ),
 );
 
 export const useSelectedTag = () =>
@@ -50,6 +60,4 @@ export const useSelectedTag = () =>
 export const useSetSelectedTag = () =>
   usePomodoroSettings((state) => state.actions.setSelectedTag);
 
-export const usePomodoroSettingsStore = () => {
-  return usePomodoroSettings();
-};
+export const usePomodoroSettingsStore = () => usePomodoroSettings();

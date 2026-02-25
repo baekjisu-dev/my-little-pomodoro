@@ -12,6 +12,7 @@ import TagItem from "../tags/tag-item";
 import { useState } from "react";
 import { Input } from "../ui/input";
 import { useSetSelectedTag } from "@/stores/pomodoro-settings";
+import { useResetPomodoroStatus } from "@/stores/pomodoro-status";
 
 const TagAddModal = () => {
   const {
@@ -22,6 +23,7 @@ const TagAddModal = () => {
     tags,
     actions: { addTag },
   } = useTagStore();
+  const resetStatus = useResetPomodoroStatus();
   const setSelectedTag = useSetSelectedTag();
 
   const [isAdd, setIsAdd] = useState(false);
@@ -46,6 +48,7 @@ const TagAddModal = () => {
 
   const handleSelectTag = (tag: string) => {
     setSelectedTag(tag);
+    resetStatus();
     close();
   };
 
@@ -60,7 +63,7 @@ const TagAddModal = () => {
           </Button>
           {isAdd && (
             <Input
-              className="w-20 h-[30px] text-xs"
+              className="w-20 h-7.5 text-xs"
               placeholder="새로운 태그"
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}

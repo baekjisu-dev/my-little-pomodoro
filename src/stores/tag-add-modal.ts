@@ -1,24 +1,32 @@
 import { create } from "zustand";
-import { combine, devtools } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 
 type TagAddModalState = {
   isOpen: boolean;
+};
+
+type TagAddModalStore = TagAddModalState & {
+  actions: {
+    open: () => void;
+    close: () => void;
+  };
 };
 
 const initialState: TagAddModalState = {
   isOpen: false,
 };
 
-const useTagAddModal = create(
+const useTagAddModal = create<TagAddModalStore>()(
   devtools(
-    combine(initialState, (set) => ({
+    (set) => ({
+      ...initialState,
       actions: {
         open: () => set({ isOpen: true }),
         close: () => set({ isOpen: false }),
       },
-    })),
-    { name: "tag-add-modal" }
-  )
+    }),
+    { name: "tag-add-modal" },
+  ),
 );
 
 export const useOpenTagAddModal = () =>

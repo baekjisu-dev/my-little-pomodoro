@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { combine, devtools } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 
 type OpenState = {
   isOpen: true;
@@ -15,13 +15,17 @@ type CloseState = {
 
 type State = CloseState | OpenState;
 
-const initialState = {
-  isOpen: false,
-} as State;
+type AlertModalStore = State & {
+  actions: {
+    open: (params: Omit<OpenState, "isOpen">) => void;
+    close: () => void;
+  };
+};
 
-const useAlertModalStore = create(
+const useAlertModalStore = create<AlertModalStore>()(
   devtools(
-    combine(initialState, (set) => ({
+    (set) => ({
+      isOpen: false,
       actions: {
         open: (params: Omit<OpenState, "isOpen">) => {
           set({ ...params, isOpen: true });
@@ -30,17 +34,12 @@ const useAlertModalStore = create(
           set({ isOpen: false });
         },
       },
-    })),
-    { name: "AlertModalStore" }
-  )
+    }),
+    { name: "AlertModalStore" },
+  ),
 );
 
-export const useOpenAlertModal = () => {
-  const open = useAlertModalStore((store) => store.actions.open);
-  return open;
-};
+export const useOpenAlertModal = () =>
+  useAlertModalStore((store) => store.actions.open);
 
-export const useAlertModal = () => {
-  const store = useAlertModalStore();
-  return store as typeof store & State;
-};
+export const useAlertModal = () => useAlertModalStore();

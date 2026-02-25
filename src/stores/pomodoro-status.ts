@@ -1,11 +1,21 @@
 import { create } from "zustand";
-import { combine, devtools, persist } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 
 type PomodoroStatusState = {
   currentSeconds: number;
   isRunning: boolean;
   focusCount: number;
   currentPhase: "focus" | "break" | "longBreak";
+};
+
+type PomodoroStatusStore = PomodoroStatusState & {
+  actions: {
+    setCurrentSeconds: (seconds: number) => void;
+    setIsRunning: (isRunning: boolean) => void;
+    setFocusCount: (count: number) => void;
+    setCurrentPhase: (phase: "focus" | "break" | "longBreak") => void;
+    reset: () => void;
+  };
 };
 
 const initialState: PomodoroStatusState = {
@@ -15,20 +25,21 @@ const initialState: PomodoroStatusState = {
   currentPhase: "focus",
 };
 
-const usePomodoroStatus = create(
+const usePomodoroStatus = create<PomodoroStatusStore>()(
   devtools(
     persist(
-      combine(initialState, (set) => ({
+      (set) => ({
+        ...initialState,
         actions: {
           setCurrentSeconds: (seconds: number) =>
             set({ currentSeconds: seconds }),
-          setIsRunning: (isRunning: boolean) => set({ isRunning: isRunning }),
+          setIsRunning: (isRunning: boolean) => set({ isRunning }),
           setFocusCount: (count: number) => set({ focusCount: count }),
           setCurrentPhase: (phase: "focus" | "break" | "longBreak") =>
             set({ currentPhase: phase }),
           reset: () => set({ ...initialState }),
         },
-      })),
+      }),
       {
         name: "pomodoro-status",
         partialize: (state) => ({
@@ -42,20 +53,10 @@ const usePomodoroStatus = create(
   ),
 );
 
-export const useIsRunning = () => {
-  const isRunning = usePomodoroStatus((state) => state.isRunning);
+export const useIsRunning = () =>
+  usePomodoroStatus((state) => state.isRunning);
 
-  return isRunning;
-};
+export const useResetPomodoroStatus = () =>
+  usePomodoroStatus((state) => state.actions.reset);
 
-export const useResetPomodoroStatus = () => {
-  const reset = usePomodoroStatus((state) => state.actions.reset);
-
-  return reset;
-};
-
-export const usePomodoroStateStore = () => {
-  const store = usePomodoroStatus();
-
-  return store as typeof store & PomodoroStatusState;
-};
+export const usePomodoroStateStore = () => usePomodoroStatus();

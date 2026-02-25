@@ -34,6 +34,9 @@ const StatisticsPage = () => {
     ];
   }, [tags]);
 
+  const getFocusLevel = (count: number) =>
+    FOCUS_LEVELS[Math.min(count, FOCUS_LEVELS.length - 1)];
+
   const handleSelectTag = (value: TagOption | null) => {
     if (value) setSelectedTag(value);
   };
@@ -67,17 +70,24 @@ const StatisticsPage = () => {
         </Combobox>
       </div>
       <div className="w-full grid grid-cols-6 sm:grid-cols-10 gap-2 mt-4">
-        {Array.from({ length: 30 }).map((_, index) => (
-          <Tooltip key={index}>
-            <TooltipTrigger>
-              <div className="aspect-square bg-primary/50 rounded-sm hover-bounce" />
-            </TooltipTrigger>
-            <TooltipContent>
-              {pomodoroHistory30Days[index]?.[selectedTag.value] || 0}개의
-              토마토
-            </TooltipContent>
-          </Tooltip>
-        ))}
+        {pomodoroHistory30Days.map(({ date, counts }) => {
+          const count = counts[selectedTag.value] ?? 0;
+          return (
+            <Tooltip key={date}>
+              <TooltipTrigger>
+                <div
+                  className={cn(
+                    "aspect-square rounded-sm hover-bounce",
+                    getFocusLevel(count),
+                  )}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                {date}: {count}개의 토마토
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
       </div>
       <div className="w-full flex justify-end items-center pt-4 gap-1">
         <p className="text-sm text-muted-foreground">적음</p>

@@ -88,8 +88,6 @@ const PomodoroTimer = () => {
     if (currentPhase === "focus") {
       const currentFocusCount = focusCount + 1;
 
-      console.log(currentFocusCount);
-
       if (currentFocusCount % 4 === 0) {
         addPomodoro({
           uuid: crypto.randomUUID(),
