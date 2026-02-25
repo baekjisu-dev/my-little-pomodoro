@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -34,6 +34,7 @@ const PomodoroTimer = () => {
   const { focusTime, breakTime, longBreakTime } = usePomodoroSettingsStore();
 
   const [remainingSeconds, setRemainingSeconds] = useState(focusTime * 60);
+  const isFirstRender = useRef(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initSeconds = () => {
@@ -44,13 +45,13 @@ const PomodoroTimer = () => {
 
     switch (currentPhase) {
       case "focus":
-        setRemainingSeconds(0.1 * 60);
+        setRemainingSeconds(focusTime * 60);
         break;
       case "break":
-        setRemainingSeconds(0.1 * 60);
+        setRemainingSeconds(breakTime * 60);
         break;
       case "longBreak":
-        setRemainingSeconds(0.1 * 60);
+        setRemainingSeconds(longBreakTime * 60);
         break;
     }
   };
@@ -95,10 +96,10 @@ const PomodoroTimer = () => {
           createdAt: Date.now(),
         });
         setCurrentPhase("longBreak");
-        setRemainingSeconds(0.1 * 60);
+        setRemainingSeconds(longBreakTime * 60);
       } else {
         setCurrentPhase("break");
-        setRemainingSeconds(0.1 * 60);
+        setRemainingSeconds(breakTime * 60);
       }
 
       setFocusCount(currentFocusCount);
@@ -106,14 +107,16 @@ const PomodoroTimer = () => {
       showNotification(
         "집중 시간 종료",
         "집중 시간이 종료되었어요. 휴식 시간을 시작해요.",
+        "focus",
       );
     } else if (currentPhase === "break" || currentPhase === "longBreak") {
       setCurrentPhase("focus");
-      setRemainingSeconds(0.1 * 60);
+      setRemainingSeconds(focusTime * 60);
 
       showNotification(
         "휴식 시간 종료",
         "휴식 시간이 종료되었어요. 집중 시간을 시작해요.",
+        "break",
       );
     }
   };
@@ -128,6 +131,17 @@ const PomodoroTimer = () => {
     clearTimer();
   };
 
+  const statusText = useMemo(() => {
+    switch (currentPhase) {
+      case "focus":
+        return "집중 시간";
+      case "break":
+        return "휴식 시간";
+      case "longBreak":
+        return "긴 휴식 시간";
+    }
+  }, [currentPhase]);
+
   useEffect(() => {
     requestNotificationPermission();
     initSeconds();
@@ -137,24 +151,28 @@ const PomodoroTimer = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setRemainingSeconds(focusTime * 60);
+  }, [selectedTag]);
+
   return (
     <div className="w-full flex flex-col items-center gap-8">
-      {currentPhase === "focus" ? (
-        <Badge
-          onClick={openTagAddModal}
-          className="cursor-pointer flex items-center gap-1"
-        >
-          <p className="max-w-20 truncate">
-            {selectedTag || "태그를 선택해요."}
-          </p>
-          <ChevronRightIcon className="size-4" />
-        </Badge>
-      ) : (
-        <p>{currentPhase === "longBreak" && "긴"} 휴식 시간 </p>
-      )}
+      <Badge
+        onClick={isRunning ? undefined : openTagAddModal}
+        className="cursor-pointer flex items-center gap-1"
+      >
+        <p className="max-w-20 truncate">{selectedTag || "태그를 선택해요."}</p>
+        {!isRunning && <ChevronRightIcon className="size-4" />}
+      </Badge>
       <p className="text-8xl font-bold tabular-nums">
         {formatTime(remainingSeconds)}
       </p>
+      <p className="text-md">{statusText}</p>
       <div className="flex gap-2">
         <Button size="lg" onClick={handleStart} disabled={isRunning}>
           <PlayIcon className="size-4" />

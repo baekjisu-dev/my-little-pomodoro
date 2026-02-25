@@ -19,12 +19,17 @@ export const requestNotificationPermission = async () => {
   }
 };
 
-export const showNotification = (title: string, body: string) => {
+export const showNotification = (
+  title: string,
+  body: string,
+  tag: "focus" | "break",
+) => {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
 
   const notification = new Notification(title, {
     body,
+    tag,
     icon: "/favicon.png",
   });
 
