@@ -2,14 +2,19 @@
 
 ***focus, one tomato at a time***
 
-<img height="500" alt="timer" src="https://my-little-pomodoro.vercel.app" />
+<img width="348" height="600" alt="image" src="https://github.com/user-attachments/assets/09404dfb-5583-415a-a980-c685c922d6f2" />
+<img width="674" height="626" alt="image" src="https://github.com/user-attachments/assets/bbe1a041-d3db-4f8e-8c3a-3db2774252e2" />
+<img width="694" height="551" alt="image" src="https://github.com/user-attachments/assets/d7c470d8-2d7c-48d9-8ec3-f0908b6aca12" />
+
+
+
 
 - 뽀모도로 기법을 활용해 집중 세션을 관리하고 기록하는 생산성 웹 앱
 - 태그로 세션을 분류하고, 30일간의 집중도를 히트맵으로 시각화하는 개인 집중 관리 플랫폼
 
 🙋‍♀️ 개발 인원: 1명
 
-📆 개발 기간: 2026년 2월 16일 ~
+📆 개발 기간: 2026년 2월 16일 ~ 2026년 2월 26일
 
 ### 접속 정보
 [접속 링크](https://my-little-pomodoro.vercel.app)
@@ -49,13 +54,12 @@ My Little Pomodoro는 **집중의 단위**를 쌓아가는 뽀모도로 타이�
 
 **💅 Frontend**
 - React 19
-- TypeScript 5.9
-- Vite 7
-- React Router 7
-- Zustand 5
-- Tailwind CSS 4
+- TypeScript
+- Vite
+- React Router
+- Zustand
+- Tailwind CSS
 - shadcn/ui
-- Recharts
 - Sonner
 
 **🛠️ Tooling**
@@ -78,11 +82,6 @@ Zustand의 `persist` 미들웨어를 활용해 관심사별로 스토어를 분�
 
 집중 4회 완료 시 긴 휴식으로 전환되며, 완료된 세션은 자동으로 날짜별 기록에 누적됩니다.
 자정을 기점으로 오늘의 데이터가 30일 히스토리로 이전되고, 30일 초과 데이터는 자동 정리됩니다.
-
-**⚡ 성능 최적화**
-
-React `lazy` + `Suspense`를 활용한 라우트 기반 코드 스플리팅으로 Lighthouse Performance 점수 62 → 94 달성
-
 
 ## 5. 폴더 구조
 
